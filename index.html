@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام إدارة مواضيع التخرج</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+    <!-- Login Page -->
+    <div id="login-page" class="login-container">
+        <h2>تسجيل الدخول</h2>
+        <p id="login-error" class="error-message"></p>
+        <input type="password" id="password" placeholder="أدخل كلمة المرور">
+        <button id="login-btn">دخول</button>
+    </div>
+
+    <!-- Main Content -->
+    <div id="main-content" class="hidden">
+        <header>
+            <h1 id="current-year">نظام إدارة مواضيع التخرج</h1>
+            <button id="logout-btn" class="logout-btn">تسجيل الخروج</button>
+        </header>
+        
+        <nav class="year-nav">
+            <button data-year="2025">2025</button>
+            <button data-year="2026">2026</button>
+            <button data-year="2027">2027</button>
+            <button data-year="2028">2028</button>
+        </nav>
+        
+        <div class="content-container">
+            <div class="subpages-tabs">
+                <button data-page="topics" class="active">المواضيع</button>
+                <button data-page="committee">لجنة المناقشة</button>
+            </div>
+            
+            <!-- Topics Content -->
+            <div id="topics-content" class="page-content">
+                <div class="topics-header">
+                    <button id="new-topic-btn" class="primary-btn">+ موضوع جديد</button>
+                    <button id="download-excel-btn" class="primary-btn hidden">تحميل كملف Excel</button>
+                </div>
+                <div id="topics-list" class="cards-container"></div>
+            </div>
+            
+            <!-- Committee Content -->
+            <div id="committee-content" class="page-content hidden">
+                <div class="committee-header">
+                    <button id="new-committee-btn" class="primary-btn">اختر لجنة مناقشة لمواضيعك</button>
+                    <button id="download-committee-excel-btn" class="primary-btn hidden">تحميل لجان المناقشة</button>
+                    <button id="manage-discussants-btn" class="primary-btn hidden">إدارة المناقشين</button>
+                </div>
+                <div id="committee-list" class="cards-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Topic Modal -->
+    <div id="topic-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>إضافة موضوع جديد</h2>
+            <form id="topic-form">
+                <div class="form-group">
+                    <label for="supervisor-name">لقب المؤطر:</label>
+                    <input type="text" id="supervisor-name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="topic-title">الموضوع:</label>
+                    <input type="text" id="topic-title" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="topic-profile">الملمح:</label>
+                    <select id="topic-profile" required>
+                        <option value="">اختر الملمح</option>
+                        <option value="متوسط">متوسط</option>
+                        <option value="ثانوي">ثانوي</option>
+                    </select>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="primary-btn">حفظ</button>
+                    <button type="button" id="cancel-modal-btn" class="secondary-btn">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Committee Modal -->
+    <div id="committee-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>اختيار لجنة المناقشة</h2>
+            <form id="committee-form">
+                <div class="form-group">
+                    <label for="committee-topic">الموضوع:</label>
+                    <select id="committee-topic" required>
+                        <option value="">اختر الموضوع</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+    <label for="first-discussant">المناقش الأول:</label>
+    <select id="first-discussant" size="5" required>
+        <option value="">اختر المناقش الأول</option>
+    </select>
+</div>
+
+<div class="form-group">
+    <label for="second-discussant">المناقش الثاني:</label>
+    <select id="second-discussant" size="5" required>
+        <option value="">اختر المناقش الثاني</option>
+    </select>
+</div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="primary-btn">حفظ</button>
+                    <button type="button" id="cancel-committee-modal-btn" class="secondary-btn">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Manage Discussants Modal -->
+    <div id="discussants-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>إدارة المناقشين</h2>
+            <div class="discussants-management">
+                <div class="discussants-list-container">
+                    <h3>قائمة المناقشين</h3>
+                    <ul id="discussants-list"></ul>
+                </div>
+                <div class="discussants-controls">
+                    <div class="form-group">
+                        <label for="new-discussant">إضافة مناقش جديد:</label>
+                        <input type="text" id="new-discussant" placeholder="اسم المناقش">
+                        <button id="add-discussant-btn" class="primary-btn">إضافة</button>
+                    </div>
+                    <div class="form-group">
+                        <label for="max-discussant-usage">تغيير الحد الأقصى لاستخدام المناقش:</label>
+                        <select id="discussant-to-limit" disabled>
+                            <option value="">اختر المناقش</option>
+                        </select>
+                        <select id="max-discussant-usage" disabled>
+                            <option value="1">1 مرة</option>
+                            <option value="2">2 مرات</option>
+                            <option value="3">3 مرات</option>
+                            <option value="4">4 مرات</option>
+                        </select>
+                        <button id="update-limit-btn" class="primary-btn" disabled>تحديث</button>
+                    </div>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="button" id="close-discussants-modal-btn" class="primary-btn">حفظ وإغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
